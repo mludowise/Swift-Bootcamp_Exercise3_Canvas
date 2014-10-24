@@ -85,6 +85,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     var currentFace : UIImageView?
+    var initialFaceTransform : CGAffineTransform?
     
     @IBAction func onFaceTrayPan(sender: UIPanGestureRecognizer) {
         var face = sender.view as UIImageView
@@ -98,10 +99,21 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     
-    @IBAction func onFacePan(sender: UIPanGestureRecognizer) {
+    func onFacePan(sender: UIPanGestureRecognizer) {
         var face = sender.view as UIImageView
         var position = sender.locationInView(view)
         moveFace(face, position: position)
+    }
+    
+    func onFacePinch(sender: UIPinchGestureRecognizer) {
+        var face = sender.view as UIImageView
+        var scale = sender.scale
+        
+        if (sender.state == UIGestureRecognizerState.Began) {
+            initialFaceTransform = face.transform
+        }
+        
+        face.transform = CGAffineTransformScale(initialFaceTransform!, scale, scale)
     }
     
     private func moveFace(face: UIImageView, position: CGPoint) {
@@ -112,10 +124,16 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         var newFace = UIImageView(image: face.image)
         newFace.frame = face.frame
         newFace.userInteractionEnabled = true
+        view.addSubview(newFace)
+        
         var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: "onFacePan:")
         panGestureRecognizer.delegate = self
         newFace.addGestureRecognizer(panGestureRecognizer)
-        view.addSubview(newFace)
+        
+        var pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: "onFacePinch:")
+        pinchGestureRecognizer.delegate = self
+        newFace.addGestureRecognizer(pinchGestureRecognizer)
+        
         return newFace
     }
     
