@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CanvasViewController: UIViewController {
+class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @IBOutlet weak var trayArrowImage: UIImageView!
     @IBOutlet weak var trayView: UIView!
@@ -36,10 +36,7 @@ class CanvasViewController: UIViewController {
 //            
 //        }
         
-        println("pan")
-        
         var translation = sender.translationInView(view)
-        
         var trayPosY = (trayShown ? openTrayPosition : closedTrayPosition) + translation.y
         
         if (trayPosY < openTrayPosition) { // Frictional Drag
@@ -82,8 +79,46 @@ class CanvasViewController: UIViewController {
     private func rotateArrow() {
         var trayPos = trayView.frame.origin.y
         var rotation = (trayPos - openTrayPosition) / (closedTrayPosition - openTrayPosition)
-//        rotation = min(1, rotation)
-//        rotation = max(0, rotation)
+        //        rotation = min(1, rotation)
+        //        rotation = max(0, rotation)
         trayArrowImage.transform = CGAffineTransformMakeRotation(rotation * CGFloat(M_PI))
     }
-}
+    
+    var currentFace : UIImageView?
+    
+    @IBAction func onFaceTrayPan(sender: UIPanGestureRecognizer) {
+        var face = sender.view as UIImageView
+        if (currentFace == nil) {
+            currentFace = addFaceToCanvas(face)
+        }
+        var position = sender.locationInView(view)
+        moveFace(currentFace!, position: position)
+        if (sender.state == UIGestureRecognizerState.Ended) {
+            currentFace = nil
+        }
+    }
+    
+    private func onFacePan(sender: UIPanGestureRecognizer) {
+        var face = sender.view as UIImageView
+        var position = sender.locationInView(view)
+        moveFace(face, position: position)
+    }
+    
+    private func moveFace(face: UIImageView, position: CGPoint) {
+        face.center = position
+    }
+    
+    private func addFaceToCanvas(face: UIImageView) -> UIImageView {
+        var newFace = UIImageView(image: face.image)
+        newFace.frame = face.frame
+        newFace.userInteractionEnabled = true
+        var panGestureRecognizer = UIPanGestureRecognizer(target: newFace, action: Selector("onFacePan:"))
+        panGestureRecognizer.delegate = self
+        newFace.addGestureRecognizer(panGestureRecognizer)
+        view.addSubview(newFace)
+        return newFace
+    }
+    
+    func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
+        return true
+    }}
