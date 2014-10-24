@@ -98,7 +98,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     
-    private func onFacePan(sender: UIPanGestureRecognizer) {
+    @IBAction func onFacePan(sender: UIPanGestureRecognizer) {
         var face = sender.view as UIImageView
         var position = sender.locationInView(view)
         moveFace(face, position: position)
@@ -112,7 +112,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         var newFace = UIImageView(image: face.image)
         newFace.frame = face.frame
         newFace.userInteractionEnabled = true
-        var panGestureRecognizer = UIPanGestureRecognizer(target: newFace, action: Selector("onFacePan:"))
+        var panGestureRecognizer = UIPanGestureRecognizer(target: self, action: "onFacePan:")
         panGestureRecognizer.delegate = self
         newFace.addGestureRecognizer(panGestureRecognizer)
         view.addSubview(newFace)
