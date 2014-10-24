@@ -20,7 +20,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
     var closedTrayPosition : CGFloat = 0
     var openTrayPosition : CGFloat = 0
     
-    var trayShown = false
+    var trayIsOpen = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,7 +37,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
 //        }
         
         var translation = sender.translationInView(view)
-        var trayPosY = (trayShown ? openTrayPosition : closedTrayPosition) + translation.y
+        var trayPosY = (trayIsOpen ? openTrayPosition : closedTrayPosition) + translation.y
         
         if (trayPosY < openTrayPosition) { // Frictional Drag
             trayView.frame.origin.y = openTrayPosition - (openTrayPosition - trayPosY) / 10
@@ -63,7 +63,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
             self.trayView.frame.origin.y = self.closedTrayPosition
             self.rotateArrow()
             }) { (b: Bool) -> Void in
-                self.trayShown = false
+                self.trayIsOpen = false
         }
     }
     
@@ -72,7 +72,7 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
             self.trayView.frame.origin.y = self.openTrayPosition
             self.rotateArrow()
             }) { (b: Bool) -> Void in
-                self.trayShown = true
+                self.trayIsOpen = true
         }
     }
     
@@ -99,10 +99,31 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         }
     }
     
+    var trayIsTemporarilyOpened = false
+    
     func onFacePan(sender: UIPanGestureRecognizer) {
-        var face = sender.view as UIImageView
+        var face = sender.view as Face
         var position = sender.locationInView(view)
+        
         moveFace(face, position: position)
+        
+        if (!trayIsOpen && position.y > closedTrayPosition) {
+            openTray()
+            trayIsTemporarilyOpened = true
+        }
+        if (trayIsTemporarilyOpened && position.y < openTrayPosition) {
+            closeTray()
+        }
+        
+        if (sender.state == UIGestureRecognizerState.Ended) {
+            if (position.y > openTrayPosition) { // Dragged onto open tray
+                deleteFace(face, onCompletion: { () -> Void in
+                    if (self.trayIsTemporarilyOpened) {
+                        self.closeTray()
+                    }
+                })
+            }
+        }
     }
     
     private func moveFace(face: UIImageView, position: CGPoint) {
@@ -132,7 +153,6 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     private func addFaceToCanvas(face: UIImageView) -> UIImageView {
-//        var newFace = UIImageView(image: face.image)
         var newFace = Face(originalFace: face)
         newFace.frame = face.frame
         newFace.userInteractionEnabled = true
@@ -151,6 +171,18 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         newFace.addGestureRecognizer(rotationGestureRecognizer)
         
         return newFace
+    }
+    
+    private func deleteFace(face: Face, onCompletion: (() -> Void)?) {
+        UIView.animateWithDuration(0.25, animations: { () -> Void in
+            face.center = self.view.convertPoint(face.originalFace.center, fromView: self.trayView)
+            face.transform = CGAffineTransformIdentity
+            }) { (b: Bool) -> Void in
+                face.removeFromSuperview()
+                if (onCompletion != nil) {
+                    onCompletion!()
+                }
+        }
     }
     
     func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
