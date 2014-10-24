@@ -105,6 +105,10 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         moveFace(face, position: position)
     }
     
+    private func moveFace(face: UIImageView, position: CGPoint) {
+        face.center = position
+    }
+    
     func onFacePinch(sender: UIPinchGestureRecognizer) {
         var face = sender.view as UIImageView
         var scale = sender.scale
@@ -116,12 +120,20 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         face.transform = CGAffineTransformScale(initialFaceTransform!, scale, scale)
     }
     
-    private func moveFace(face: UIImageView, position: CGPoint) {
-        face.center = position
+    func onFaceRotate(sender: UIRotationGestureRecognizer) {
+        var face = sender.view as UIImageView
+        var rotation = sender.rotation
+        
+        if (sender.state == UIGestureRecognizerState.Began) {
+            initialFaceTransform = face.transform
+        }
+        
+        face.transform = CGAffineTransformRotate(initialFaceTransform!, rotation)
     }
     
     private func addFaceToCanvas(face: UIImageView) -> UIImageView {
-        var newFace = UIImageView(image: face.image)
+//        var newFace = UIImageView(image: face.image)
+        var newFace = Face(originalFace: face)
         newFace.frame = face.frame
         newFace.userInteractionEnabled = true
         view.addSubview(newFace)
@@ -134,9 +146,28 @@ class CanvasViewController: UIViewController, UIGestureRecognizerDelegate {
         pinchGestureRecognizer.delegate = self
         newFace.addGestureRecognizer(pinchGestureRecognizer)
         
+        var rotationGestureRecognizer = UIRotationGestureRecognizer(target: self, action: "onFaceRotate:")
+        rotationGestureRecognizer.delegate = self
+        newFace.addGestureRecognizer(rotationGestureRecognizer)
+        
         return newFace
     }
     
     func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
         return true
-    }}
+    }
+}
+
+private class Face : UIImageView {
+    var originalFace : UIImageView
+    
+    init(originalFace: UIImageView) {
+        self.originalFace = originalFace
+        super.init(image: originalFace.image)
+        self.frame = originalFace.frame
+    }
+
+    required init(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
