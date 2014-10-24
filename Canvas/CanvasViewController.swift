@@ -36,7 +36,12 @@ class CanvasViewController: UIViewController {
         var translation = sender.translationInView(view)
         
         var trayPosY = (trayShown ? openTrayPosition : closedTrayPosition) + translation.y
-        trayView.frame.origin.y = min(closedTrayPosition, max(openTrayPosition, trayPosY))
+        
+        if (trayPosY < openTrayPosition) { // Frictional Drag
+            trayView.frame.origin.y = openTrayPosition - (openTrayPosition - trayPosY) / 10
+        } else {
+            trayView.frame.origin.y = min(closedTrayPosition, trayPosY)
+        }
         
         if (sender.state == UIGestureRecognizerState.Ended) {
             if (sender.velocityInView(view).y < 0) {
