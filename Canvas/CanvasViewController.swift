@@ -13,6 +13,10 @@ class CanvasViewController: UIViewController {
     @IBOutlet weak var trayArrowImage: UIImageView!
     @IBOutlet weak var trayView: UIView!
     
+    let kScreenHeight : CGFloat = UIScreen.mainScreen().bounds.height
+    let kTrayOpenHeight : CGFloat = 205
+    let kTrayClosedHeight : CGFloat = 46
+    
     var closedTrayPosition : CGFloat = 0
     var openTrayPosition : CGFloat = 0
     
@@ -21,9 +25,10 @@ class CanvasViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        var screenSize = UIScreen.mainScreen().bounds.size
-        closedTrayPosition = trayView.frame.origin.y
-        openTrayPosition = screenSize.height - trayView.frame.size.height
+        closedTrayPosition = kScreenHeight - kTrayClosedHeight
+        openTrayPosition = kScreenHeight - kTrayOpenHeight
+        trayView.frame.origin.y = closedTrayPosition
+        rotateArrow()
     }
 
     @IBAction func onTrayPan(sender: UIPanGestureRecognizer) {
@@ -39,9 +44,13 @@ class CanvasViewController: UIViewController {
         
         if (trayPosY < openTrayPosition) { // Frictional Drag
             trayView.frame.origin.y = openTrayPosition - (openTrayPosition - trayPosY) / 10
+        } else if (trayPosY > closedTrayPosition) { // Bounce Closed
+            trayView.frame.origin.y = closedTrayPosition + (trayPosY - closedTrayPosition) / 2
         } else {
-            trayView.frame.origin.y = min(closedTrayPosition, trayPosY)
+            trayView.frame.origin.y = trayPosY
         }
+        
+        rotateArrow()
         
         if (sender.state == UIGestureRecognizerState.Ended) {
             if (sender.velocityInView(view).y < 0) {
@@ -55,6 +64,7 @@ class CanvasViewController: UIViewController {
     private func closeTray() {
         UIView.animateWithDuration(0.25, animations: { () -> Void in
             self.trayView.frame.origin.y = self.closedTrayPosition
+            self.rotateArrow()
             }) { (b: Bool) -> Void in
                 self.trayShown = false
         }
@@ -63,8 +73,17 @@ class CanvasViewController: UIViewController {
     private func openTray() {
         UIView.animateWithDuration(0.25, animations: { () -> Void in
             self.trayView.frame.origin.y = self.openTrayPosition
+            self.rotateArrow()
             }) { (b: Bool) -> Void in
                 self.trayShown = true
         }
+    }
+    
+    private func rotateArrow() {
+        var trayPos = trayView.frame.origin.y
+        var rotation = (trayPos - openTrayPosition) / (closedTrayPosition - openTrayPosition)
+//        rotation = min(1, rotation)
+//        rotation = max(0, rotation)
+        trayArrowImage.transform = CGAffineTransformMakeRotation(rotation * CGFloat(M_PI))
     }
 }

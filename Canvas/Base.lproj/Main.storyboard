@@ -12,13 +12,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" id="0fA-QS-Dca">
-                                <rect key="frame" x="0.0" y="522" width="320" height="46"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
-                            </view>
                             <view contentMode="scaleToFill" id="u3Z-e3-OuZ" userLabel="Tray View">
-                                <rect key="frame" x="0.0" y="522" width="320" height="205"/>
+                                <rect key="frame" x="0.0" y="304" width="320" height="264"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="happy" id="vor-aY-uX4">
